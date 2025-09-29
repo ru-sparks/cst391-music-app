@@ -49,7 +49,7 @@ export async function GET(
       year: album.year,
       image: album.image,
       description: album.description,
-      tracks: tracksByAlbum[album.id] || [],
+      tracks: tracksByAlbum[album.id!] || [],
     }));
 
     return NextResponse.json(result);
