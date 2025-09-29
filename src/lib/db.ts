@@ -1,3 +1,5 @@
+// src\lib\db.ts
+
 import { Pool } from 'pg';
 
 // Persist across hot reloads in dev and across warm serverless invocations
@@ -17,3 +19,5 @@ export function getPool(): Pool {
   }
   return pool;
 }
+
+
