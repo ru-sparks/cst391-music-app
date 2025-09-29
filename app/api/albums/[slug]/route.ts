@@ -2,11 +2,10 @@
 // app\api\albums\[slug]\route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getPool } from '@/lib/db';
-import { Album } from '@/lib/types';
+import { Album, Track } from '@/lib/types';
 
 
 export const runtime = 'nodejs';
-
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
@@ -30,7 +29,7 @@ export async function GET(
     );
     const tracksData = tracksRes.rows;
 
-    const tracksByAlbum: Record<number, any[]> = {};
+    const tracksByAlbum: Record<number, Track[]> = {};
     for (const track of tracksData) {
       (tracksByAlbum[track.album_id] ||= []).push({
         id: track.id,

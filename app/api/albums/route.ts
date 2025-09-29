@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const pool = getPool();
     const url = new URL(request.url);
     const albumIdParam = url.searchParams.get('albumId');
-    let albumsData: any[];
+    let albumsData: Album[];
 
     if (albumIdParam) {
       const idNum = parseInt(albumIdParam, 10);
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     );
     const tracksData = tracksRes.rows;
 
-    const tracksByAlbum: Record<number, any[]> = {};
+    const tracksByAlbum: Record<number, Track[]> = {};
     for (const track of tracksData) {
       (tracksByAlbum[track.album_id] ||= []).push({
         id: track.id,
