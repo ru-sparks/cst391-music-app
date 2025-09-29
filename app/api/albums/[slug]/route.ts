@@ -33,7 +33,7 @@ export async function GET(
 
     const tracksByAlbum: Record<number, Track[]> = {};
     for (const track of tracksData) {
-      (tracksByAlbum[track.album_id] ||= []).push({
+      (tracksByAlbum[track.album_id!] ||= []).push({
         id: track.id,
         number: track.number,
         title: track.title,
