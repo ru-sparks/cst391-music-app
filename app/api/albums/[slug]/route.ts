@@ -6,11 +6,13 @@ import { Album, Track } from '@/lib/types';
 
 
 export const runtime = 'nodejs';
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  context: { params: Promise<{ slug: string }> }
 ) {
-  const artistName = params.slug;
+  const { slug: artistName } = await context.params;
+  console
   try {
     const pool = getPool();
     const albumsRes = await pool.query(
@@ -59,9 +61,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  context: { params: Promise<{ slug: string }> }
 ) {
-  const id = parseInt(params.slug, 10);
+  const { slug } = await context.params;
+  const id = parseInt(slug, 10);
   if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid album ID' }, { status: 400 });
   }

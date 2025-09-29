@@ -7,9 +7,10 @@ export const runtime = 'nodejs';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { searchTerm: string } }
+  context: { params: Promise<{ searchTerm: string }> }
 ) {
-  const searchTerm = params.searchTerm;
+  const { searchTerm } = await context.params;
+
   try {
     const pool = getPool();
     const albumsRes = await pool.query(
