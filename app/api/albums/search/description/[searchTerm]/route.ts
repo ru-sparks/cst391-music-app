@@ -4,6 +4,8 @@ import { Album, Track } from '@/lib/types';
 
 
 
+
+
 export const runtime = 'nodejs';
 
 export async function GET(
@@ -15,14 +17,14 @@ export async function GET(
     const pool = getPool();
     const albumsRes = await pool.query(
       `SELECT * FROM albums WHERE description ILIKE $1`,
-      [ `%${searchTerm}%` ]
+      [`%${searchTerm}%`]
     );
     const albumsData = albumsRes.rows;
     if (albumsData.length === 0) {
       return NextResponse.json([], { status: 200 });
     }
 
-    const albumIds = albumsData.map(a => a.id);
+    const albumIds = albumsData.map(a => a.albumId);
     const tracksRes = await pool.query(
       'SELECT * FROM tracks WHERE album_id = ANY($1) ORDER BY number',
       [albumIds]
@@ -32,7 +34,7 @@ export async function GET(
     const tracksByAlbum: Record<number, Track[]> = {};
     for (const track of tracksData) {
       (tracksByAlbum[track.album_id!] ||= []).push({
-        id: track.id,
+        albumId: track.albumId,
         number: track.number,
         title: track.title,
         lyrics: track.lyrics,
@@ -41,13 +43,13 @@ export async function GET(
     }
 
     const result: Album[] = albumsData.map(album => ({
-      id: album.id,
+      albumId: album.albumId,
       title: album.title,
       artist: album.artist,
       year: album.year,
       image: album.image,
       description: album.description,
-      tracks: tracksByAlbum[album.id!] || [],
+      tracks: tracksByAlbum[album.albumId!] || [],
     }));
 
     return NextResponse.json(result);

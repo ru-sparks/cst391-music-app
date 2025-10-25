@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPool } from '@/lib/db';
 import { Album, Track } from '@/lib/types';
-
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
@@ -16,7 +15,7 @@ export async function GET(request: NextRequest) {
       if (isNaN(idNum)) {
         return NextResponse.json({ error: 'Invalid albumId parameter' }, { status: 400 });
       }
-      const res = await pool.query('SELECT * FROM albums WHERE id = $1', [idNum]);
+      const res = await pool.query('SELECT * FROM albums WHERE albumId = $1', [idNum]);
       albumsData = res.rows;
     } else {
       const res = await pool.query('SELECT * FROM albums');
@@ -27,7 +26,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([], { status: 200 });
     }
 
-    const albumIds = albumsData.map(a => a.id);
+    const albumIds = albumsData.map(a => a.albumId);
     const tracksRes = await pool.query(
       'SELECT * FROM tracks WHERE album_id = ANY($1) ORDER BY number',
       [albumIds]
@@ -37,7 +36,7 @@ export async function GET(request: NextRequest) {
     const tracksByAlbum: Record<number, Track[]> = {};
     for (const track of tracksData) {
       (tracksByAlbum[track.album_id] ||= []).push({
-        id: track.id,
+        albumId: track.albumId,
         number: track.number,
         title: track.title,
         lyrics: track.lyrics,
@@ -46,13 +45,13 @@ export async function GET(request: NextRequest) {
     }
 
     const albumsWithTracks: Album[] = albumsData.map(album => ({
-      id: album.id,
+      albumId: album.albumId,
       title: album.title,
       artist: album.artist,
       year: album.year,
       image: album.image,
       description: album.description,
-      tracks: tracksByAlbum[album.id!] || [],
+      tracks: tracksByAlbum[album.albumId!] || [],
     }));
 
     return NextResponse.json(albumsWithTracks);
@@ -76,10 +75,10 @@ export async function POST(request: NextRequest) {
       await client.query('BEGIN');
       const albumRes = await client.query(
         `INSERT INTO albums (title, artist, description, year, image)
-         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+         VALUES ($1, $2, $3, $4, $5) RETURNING albumId`,
         [title, artist, description ?? null, year, image ?? null]
       );
-      const albumId: number = albumRes.rows[0].id;
+      const albumId: number = albumRes.rows[0].albumId;
 
       if (Array.isArray(tracks)) {
         for (const t of tracks as Track[]) {
@@ -93,7 +92,7 @@ export async function POST(request: NextRequest) {
       }
 
       await client.query('COMMIT');
-      return NextResponse.json({ id: albumId }, { status: 201 });
+      return NextResponse.json({ albumId: albumId }, { status: 201 });
     } catch (err) {
       await client.query('ROLLBACK');
       console.error('POST /api/albums transaction error:', err);
@@ -120,16 +119,16 @@ export async function PUT(request: NextRequest) {
     try {
       await client.query('BEGIN');
       await client.query(
-        `UPDATE albums SET title=$1, artist=$2, description=$3, year=$4, image=$5 WHERE id=$6`,
+        `UPDATE albums SET title=$1, artist=$2, description=$3, year=$4, image=$5 WHERE albumId=$6`,
         [title, artist, description ?? null, year, image ?? null, albumId]
       );
 
       if (Array.isArray(tracks)) {
         for (const t of tracks as Track[]) {
-          if (t.id == null) continue;
+          if (t.albumId == null) continue;
           await client.query(
-            `UPDATE tracks SET number=$1, title=$2, lyrics=$3, video_url=$4 WHERE id=$5 AND album_id=$6`,
-            [t.number, t.title, t.lyrics ?? null, t.video ?? null, t.id, albumId]
+            `UPDATE tracks SET number=$1, title=$2, lyrics=$3, video_url=$4 WHERE albumId=$5 AND album_id=$6`,
+            [t.number, t.title, t.lyrics ?? null, t.video ?? null, t.albumId, albumId]
           );
         }
       }
