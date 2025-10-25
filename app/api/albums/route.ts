@@ -7,15 +7,15 @@ export async function GET(request: NextRequest) {
   try {
     const pool = getPool();
     const url = new URL(request.url);
-    const albumIdParam = url.searchParams.get('albumId');
+    const albumIdParam = url.searchParams.get('id');
     let albumsData: Album[];
 
     if (albumIdParam) {
       const idNum = parseInt(albumIdParam, 10);
       if (isNaN(idNum)) {
-        return NextResponse.json({ error: 'Invalid albumId parameter' }, { status: 400 });
+        return NextResponse.json({ error: 'Invalid id parameter' }, { status: 400 });
       }
-      const res = await pool.query('SELECT * FROM albums WHERE albumId = $1', [idNum]);
+      const res = await pool.query('SELECT * FROM albums WHERE id = $1', [idNum]);
       albumsData = res.rows;
     } else {
       const res = await pool.query('SELECT * FROM albums');
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([], { status: 200 });
     }
 
-    const albumIds = albumsData.map(a => a.albumId);
+    const albumIds = albumsData.map(a => a.id);
     const tracksRes = await pool.query(
       'SELECT * FROM tracks WHERE album_id = ANY($1) ORDER BY number',
       [albumIds]
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     const tracksByAlbum: Record<number, Track[]> = {};
     for (const track of tracksData) {
       (tracksByAlbum[track.album_id] ||= []).push({
-        albumId: track.albumId,
+        id: track.id,
         number: track.number,
         title: track.title,
         lyrics: track.lyrics,
@@ -45,13 +45,13 @@ export async function GET(request: NextRequest) {
     }
 
     const albumsWithTracks: Album[] = albumsData.map(album => ({
-      albumId: album.albumId,
+      id: album.id,
       title: album.title,
       artist: album.artist,
       year: album.year,
       image: album.image,
       description: album.description,
-      tracks: tracksByAlbum[album.albumId!] || [],
+      tracks: tracksByAlbum[album.id!] || [],
     }));
 
     return NextResponse.json(albumsWithTracks);
@@ -75,10 +75,10 @@ export async function POST(request: NextRequest) {
       await client.query('BEGIN');
       const albumRes = await client.query(
         `INSERT INTO albums (title, artist, description, year, image)
-         VALUES ($1, $2, $3, $4, $5) RETURNING albumId`,
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
         [title, artist, description ?? null, year, image ?? null]
       );
-      const albumId: number = albumRes.rows[0].albumId;
+      const id: number = albumRes.rows[0].id;
 
       if (Array.isArray(tracks)) {
         for (const t of tracks as Track[]) {
@@ -86,13 +86,13 @@ export async function POST(request: NextRequest) {
           await client.query(
             `INSERT INTO tracks (album_id, title, number, lyrics, video_url)
              VALUES ($1, $2, $3, $4, $5)`,
-            [albumId, t.title, t.number, t.lyrics ?? null, t.video ?? null]
+            [id, t.title, t.number, t.lyrics ?? null, t.video ?? null]
           );
         }
       }
 
       await client.query('COMMIT');
-      return NextResponse.json({ albumId: albumId }, { status: 201 });
+      return NextResponse.json({ id: id }, { status: 201 });
     } catch (err) {
       await client.query('ROLLBACK');
       console.error('POST /api/albums transaction error:', err);
@@ -109,9 +109,9 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { albumId, title, artist, year, description, image, tracks } = body;
-    if (albumId == null) {
-      return NextResponse.json({ error: 'Missing albumId for update' }, { status: 400 });
+    const { id, title, artist, year, description, image, tracks } = body;
+    if (id == null) {
+      return NextResponse.json({ error: 'Missing id for update' }, { status: 400 });
     }
 
     const pool = getPool();
@@ -119,16 +119,16 @@ export async function PUT(request: NextRequest) {
     try {
       await client.query('BEGIN');
       await client.query(
-        `UPDATE albums SET title=$1, artist=$2, description=$3, year=$4, image=$5 WHERE albumId=$6`,
-        [title, artist, description ?? null, year, image ?? null, albumId]
+        `UPDATE albums SET title=$1, artist=$2, description=$3, year=$4, image=$5 WHERE id=$6`,
+        [title, artist, description ?? null, year, image ?? null, id]
       );
 
       if (Array.isArray(tracks)) {
         for (const t of tracks as Track[]) {
-          if (t.albumId == null) continue;
+          if (t.id == null) continue;
           await client.query(
-            `UPDATE tracks SET number=$1, title=$2, lyrics=$3, video_url=$4 WHERE albumId=$5 AND album_id=$6`,
-            [t.number, t.title, t.lyrics ?? null, t.video ?? null, t.albumId, albumId]
+            `UPDATE tracks SET number=$1, title=$2, lyrics=$3, video_url=$4 WHERE id=$5 AND album_id=$6`,
+            [t.number, t.title, t.lyrics ?? null, t.video ?? null, t.id, id]
           );
         }
       }

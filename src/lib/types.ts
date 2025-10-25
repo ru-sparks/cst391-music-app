@@ -1,6 +1,6 @@
 // src\lib\types.ts
 export interface Track {
-    albumId: number;
+    id: number;
     number: number;
     title: string;
     lyrics?: string | null;
@@ -8,7 +8,7 @@ export interface Track {
 }
 
 export interface Album {
-    albumId: number;
+    id: number;
     title: string;
     artist: string;
     description?: string | null;

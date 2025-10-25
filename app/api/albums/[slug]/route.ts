@@ -24,7 +24,7 @@ export async function GET(
       return NextResponse.json([], { status: 200 });
     }
 
-    const albumIds = albumsData.map(a => a.albumId);
+    const albumIds = albumsData.map(a => a.id);
     const tracksRes = await pool.query(
       'SELECT * FROM tracks WHERE album_id = ANY($1) ORDER BY number',
       [albumIds]
@@ -34,7 +34,7 @@ export async function GET(
     const tracksByAlbum: Record<number, Track[]> = {};
     for (const track of tracksData) {
       (tracksByAlbum[track.album_id!] ||= []).push({
-        albumId: track.albumId,
+        id: track.id,
         number: track.number,
         title: track.title,
         lyrics: track.lyrics,
@@ -43,13 +43,13 @@ export async function GET(
     }
 
     const result: Album[] = albumsData.map(album => ({
-      albumId: album.albumId,
+      id: album.id,
       title: album.title,
       artist: album.artist,
       year: album.year,
       image: album.image,
       description: album.description,
-      tracks: tracksByAlbum[album.albumId!] || [],
+      tracks: tracksByAlbum[album.id!] || [],
     }));
 
     return NextResponse.json(result);
@@ -64,19 +64,19 @@ export async function DELETE(
   context: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await context.params;
-  const albumId = parseInt(slug, 10);
-  if (isNaN(albumId)) {
+  const id = parseInt(slug, 10);
+  if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid album ID' }, { status: 400 });
   }
   try {
     const pool = getPool();
-    const del = await pool.query('DELETE FROM albums WHERE albumId = $1 RETURNING albumId', [albumId]);
+    const del = await pool.query('DELETE FROM albums WHERE id = $1 RETURNING id', [id]);
     if (del.rowCount === 0) {
       return NextResponse.json({ error: 'Album not found' }, { status: 404 });
     }
-    return NextResponse.json({ message: `Album ${albumId} deleted` });
+    return NextResponse.json({ message: `Album ${id} deleted` });
   } catch (error) {
-    console.error(`DELETE /api/albums/${albumId} error:`, error);
+    console.error(`DELETE /api/albums/${id} error:`, error);
     return NextResponse.json({ error: 'Failed to delete album' }, { status: 500 });
   }
 }

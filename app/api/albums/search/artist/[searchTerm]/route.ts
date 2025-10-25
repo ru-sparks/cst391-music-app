@@ -22,7 +22,7 @@ export async function GET(
       return NextResponse.json([], { status: 200 });
     }
 
-    const albumIds = albumsData.map(a => a.albumId);
+    const albumIds = albumsData.map(a => a.id);
     const tracksRes = await pool.query(
       'SELECT * FROM tracks WHERE album_id = ANY($1) ORDER BY number',
       [albumIds]
@@ -32,7 +32,7 @@ export async function GET(
     const tracksByAlbum: Record<number, Track[]> = {};
     for (const track of tracksData) {
       (tracksByAlbum[track.album_id!] ||= []).push({
-        albumId: track.albumId,
+        id: track.id,
         number: track.number,
         title: track.title,
         lyrics: track.lyrics,
@@ -41,13 +41,13 @@ export async function GET(
     }
 
     const result: Album[] = albumsData.map(album => ({
-      albumId: album.albumId,
+      id: album.id,
       title: album.title,
       artist: album.artist,
       year: album.year,
       image: album.image,
       description: album.description,
-      tracks: tracksByAlbum[album.albumId!] || [],
+      tracks: tracksByAlbum[album.id!] || [],
     }));
 
     return NextResponse.json(result);

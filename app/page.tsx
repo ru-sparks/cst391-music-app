@@ -42,7 +42,7 @@ export default function Page() {
   // CHANGED: replace navigate() with router.push()
   const updateSingleAlbum = (albumId: number, uri: string) => {
     console.log("Update Single Album = ", albumId);
-    const indexNumber = albumList.findIndex((a: Album) => a.albumId === albumId);
+    const indexNumber = albumList.findIndex((a: Album) => a.id === albumId);
     setCurrentlySelectedAlbumId(indexNumber);
     const path = `${uri}${indexNumber}`;
     console.log("path", path);
@@ -76,7 +76,7 @@ export default function Page() {
       {/* <SearchAlbum
         updateSearchResults={updateSearchResults}
         albumList={renderedList}
-        updateSingleAlbum={(albumId: number) => updateSingleAlbum(albumId, "/show/")}
+        updateSingleAlbum={(albumid: number) => updateSingleAlbum(albumid, "/show/")}
       /> */}
       <h1>Sparks Album List (Debug View)</h1>
       <p>This JSON data is rendered directly from the API response.</p>
