@@ -1,22 +1,23 @@
+// app/page.tsx
 // CHANGED: Next.js uses TypeScript and server/client separation.
 // This component uses hooks and interactivity, so we must mark it as a Client Component.
 "use client";
 
 import { useState, useEffect } from "react";
-// import NavBar from "../components/NavBar";
 //import SearchAlbum from "../components/SearchAlbum"; // CHANGED: adjust import paths for /app structure
 // import EditAlbum from "../components/EditAlbum";
 // import OneAlbum from "../components/OneAlbum";
 // import dataSource from "../lib/dataSource"; // CHANGED: move dataSource to /lib for Next.js convention
 import { useRouter } from "next/navigation"; // CHANGED: replace BrowserRouter + navigate() with Next.js router
+import NavBar from "./components/NavBar";
 import { Album } from "@/lib/types";
 
 
 // CHANGED: In Next.js, "App" is replaced by a route-level component called page.tsx
 export default function Page() {
-  const [searchPhrase, setSearchPhrase] = useState<string>("");
+  const [searchPhrase, setSearchPhrase] = useState("");
   const [albumList, setAlbumList] = useState<Album[]>([]);
-  const [currentlySelectedAlbumId, setCurrentlySelectedAlbumId] = useState<number>(0);
+  const [currentlySelectedAlbumId, setCurrentlySelectedAlbumId] = useState(0);
 
   const router = useRouter(); // CHANGED: replaces BrowserRouter + navigate()
 
@@ -42,7 +43,7 @@ export default function Page() {
   // CHANGED: replace navigate() with router.push()
   const updateSingleAlbum = (albumId: number, uri: string) => {
     console.log("Update Single Album = ", albumId);
-    const indexNumber = albumList.findIndex((a: Album) => a.id === albumId);
+    const indexNumber = albumList.findIndex((a) => a.id === albumId);
     setCurrentlySelectedAlbumId(indexNumber);
     const path = `${uri}${indexNumber}`;
     console.log("path", path);
@@ -70,7 +71,7 @@ export default function Page() {
 
   return (
     <main>
-      {/* <NavBar /> */}
+      <NavBar />
       {/* CHANGED: Render SearchAlbum directly here; other routes (new, edit, show)
           will be separate pages: /new/page.tsx, /edit/[albumId]/page.tsx, etc. */}
       {/* <SearchAlbum
