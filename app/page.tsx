@@ -7,16 +7,18 @@ import { useState, useEffect } from "react";
 //import SearchAlbum from "../components/SearchAlbum"; // CHANGED: adjust import paths for /app structure
 // import EditAlbum from "../components/EditAlbum";
 // import OneAlbum from "../components/OneAlbum";
-// import dataSource from "../lib/dataSource"; // CHANGED: move dataSource to /lib for Next.js convention
 import { useRouter } from "next/navigation"; // CHANGED: replace BrowserRouter + navigate() with Next.js router
 import NavBar from "./components/NavBar";
 import { Album } from "@/lib/types";
+import { get } from "@/lib/apiClient";
+import AlbumCard from "./components/AlbumCard";
 
 
 // CHANGED: In Next.js, "App" is replaced by a route-level component called page.tsx
 export default function Page() {
   const [searchPhrase, setSearchPhrase] = useState("");
   const [albumList, setAlbumList] = useState<Album[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [currentlySelectedAlbumId, setCurrentlySelectedAlbumId] = useState(0);
 
   const router = useRouter(); // CHANGED: replaces BrowserRouter + navigate()
@@ -24,10 +26,13 @@ export default function Page() {
   // CHANGED: Load albums from API (fetch through relative path, not axios)
   const loadAlbums = async () => {
     // CHANGED: since the server and client are in the same Next.js app, we can use relative paths
-    const response = await fetch("/api/albums");
-    const data = await response.json();
-    console.log("Fetched albums:", data);
-    setAlbumList(data);
+    try {
+      setLoadError(null);
+      const albums = await get<Album[]>("/albums");
+      setAlbumList(albums);
+    } catch (error) {
+      setLoadError(`Failed to load albums : ${error}`);
+    }
   };
 
   // CHANGED: Initialization logic still valid
@@ -83,6 +88,7 @@ export default function Page() {
       <p>This JSON data is rendered directly from the API response.</p>
 
       {/* CHANGED: render JSON data inline */}
+      {/* Debug JSON display */}
       <pre
         style={{
           backgroundColor: "#f4f4f4",
@@ -92,15 +98,16 @@ export default function Page() {
           color: "#111",
           fontSize: "0.9rem",
           lineHeight: "1.4",
-
-
         }}
       >
         {albumList.length > 0 && JSON.stringify(albumList, null, 2)}
+        {!loadError && albumList.length === 0 && <p>Loading albums...</p>}
+        {loadError && <p style={{ color: "red" }}>{loadError}</p>}
       </pre>
 
-      {/* CHANGED: simple conditional view */}
-      {albumList.length === 0 && <p>Loading albums...</p>}
+      {/* Render the first album visually */}
+      {albumList.length > 0 && <AlbumCard album={albumList[0]} />}
+
 
     </main>
   );
