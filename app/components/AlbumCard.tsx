@@ -18,18 +18,20 @@ export default function AlbumCard({ album }: { album: Album }) {
             <div className="card-body">
                 <h5 className="card-title">{album.title}</h5>
                 <p className="card-text">{album.description}</p>
-                <button
-                    onClick={() => handleButtonClick("/show/")}
-                    className="btn btn-primary"
-                >
-                    View
-                </button>
-                <button
-                    onClick={() => handleButtonClick("/edit/")}
-                    className="btn btn-secondary"
-                >
-                    Edit
-                </button>
+                <div className="d-flex justify-content-center gap-3 mt-4">
+                    <button
+                        onClick={() => handleButtonClick("/show/")}
+                        className="btn btn-secondary"
+                    >
+                        View
+                    </button>
+                    <button
+                        onClick={() => handleButtonClick("/edit/")}
+                        className="btn btn-primary"
+                    >
+                        Edit
+                    </button>
+                </div>
             </div>
         </div>
     );

@@ -12,6 +12,7 @@ import NavBar from "./components/NavBar";
 import { Album } from "@/lib/types";
 import { get } from "@/lib/apiClient";
 import AlbumCard from "./components/AlbumCard";
+import AlbumList from "./components/AlbumList";
 
 
 // CHANGED: In Next.js, "App" is replaced by a route-level component called page.tsx
@@ -89,6 +90,9 @@ export default function Page() {
 
       {/* CHANGED: render JSON data inline */}
       {/* Debug JSON display */}
+      {/* Render the first album visually */}
+      {albumList.length > 0 && <AlbumCard album={albumList[0]} />}
+      {albumList.length > 0 && <AlbumList albumList={albumList} />}
       <pre
         style={{
           backgroundColor: "#f4f4f4",
@@ -105,8 +109,6 @@ export default function Page() {
         {loadError && <p style={{ color: "red" }}>{loadError}</p>}
       </pre>
 
-      {/* Render the first album visually */}
-      {albumList.length > 0 && <AlbumCard album={albumList[0]} />}
 
 
     </main>
