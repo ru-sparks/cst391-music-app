@@ -33,7 +33,7 @@ export default function NavBar() {
           <Link href="/new" className="nav-item nav-link">
             New
           </Link>
-          <Link href="/aboutBox" className="nav-item nav-link">
+          <Link href="/about" className="nav-item nav-link">
             About Us
           </Link>
         </div>

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type AboutBoxProps = {
     companyName: string;
     bossName: string;
@@ -29,9 +31,10 @@ const AboutBox = ({ companyName = "ACME", bossName = "Road Runner" }: AboutBoxPr
                         <small className="text-body-secondary">Updated October 2025</small>
                     </p>
                     <div className="d-flex justify-content-center gap-3 mt-4">
-                        <a href="/" className="btn btn-primary">
+
+                        <Link href="/" className="btn btn-primary">
                             Home
-                        </a>
+                        </Link>
                     </div>
 
                 </div>

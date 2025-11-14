@@ -1,116 +1,68 @@
-// app/page.tsx
-// CHANGED: Next.js uses TypeScript and server/client separation.
-// This component uses hooks and interactivity, so we must mark it as a Client Component.
 "use client";
 
 import { useState, useEffect } from "react";
-//import SearchAlbum from "../components/SearchAlbum"; // CHANGED: adjust import paths for /app structure
-// import EditAlbum from "../components/EditAlbum";
-// import OneAlbum from "../components/OneAlbum";
-import { useRouter } from "next/navigation"; // CHANGED: replace BrowserRouter + navigate() with Next.js router
+import { useRouter } from "next/navigation";
 import NavBar from "./components/NavBar";
+import SearchAlbum from "./components/SearchAlbum";
 import { Album } from "@/lib/types";
 import { get } from "@/lib/apiClient";
-import AlbumCard from "./components/AlbumCard";
-import AlbumList from "./components/AlbumList";
 
-
-// CHANGED: In Next.js, "App" is replaced by a route-level component called page.tsx
 export default function Page() {
   const [searchPhrase, setSearchPhrase] = useState("");
   const [albumList, setAlbumList] = useState<Album[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [currentlySelectedAlbumId, setCurrentlySelectedAlbumId] = useState(0);
 
-  const router = useRouter(); // CHANGED: replaces BrowserRouter + navigate()
+  const router = useRouter();
 
-  // CHANGED: Load albums from API (fetch through relative path, not axios)
+  // Fetch all albums from your API
   const loadAlbums = async () => {
-    // CHANGED: since the server and client are in the same Next.js app, we can use relative paths
     try {
       setLoadError(null);
       const albums = await get<Album[]>("/albums");
       setAlbumList(albums);
     } catch (error) {
-      setLoadError(`Failed to load albums : ${error}`);
+      setLoadError(`Failed to load albums: ${error}`);
     }
   };
 
-  // CHANGED: Initialization logic still valid
   useEffect(() => {
     loadAlbums();
   }, []);
 
-  const updateSearchResults = async (phrase: string) => {
-    console.log("phrase is " + phrase);
-    setSearchPhrase(phrase);
+  // Handle user search submission
+  const updateSearchResults = (data: Record<string, string>) => {
+    console.log("phrase is " + data.searchTerm);
+    setSearchPhrase(data.searchTerm || "");
   };
 
-  // CHANGED: replace navigate() with router.push()
-  const updateSingleAlbum = (albumId: number, uri: string) => {
-    console.log("Update Single Album = ", albumId);
-    const indexNumber = albumList.findIndex((a) => a.id === albumId);
-    setCurrentlySelectedAlbumId(indexNumber);
-    const path = `${uri}${indexNumber}`;
-    console.log("path", path);
-    router.push(path); // CHANGED: use Next.js router
+  // Handle clicking on a single album (navigate to /show/:id)
+  const updateSingleAlbum = (album: Album, uri: string) => {
+    console.log(`Update Single Album = ${album} uri = ${uri}`);
+    router.push(`${uri}${album.id}`);
   };
 
-  const renderedList = albumList.filter((album) => {
-    if (
-      (album.description ?? "").toLowerCase().includes(searchPhrase.toLowerCase()) ||
-      searchPhrase === ""
-    ) {
-      return true;
-    }
-    return false;
-  });
+  // Filter albums by description or show all
+  const renderedList = albumList.filter((album) =>
+    (album.description ?? "")
+      .toLowerCase()
+      .includes(searchPhrase.toLowerCase())
+  );
 
+  // Reuse callback for refreshing after edit
   const onEditAlbum = () => {
     loadAlbums();
-    router.push("/"); // CHANGED: replaced navigate("/") with router.push("/")
+    router.push("/");
   };
-
-  // CHANGED: Next.js doesn’t use BrowserRouter/Routes — navigation handled via <Link> or router.push().
-  // We’ll show components conditionally based on app state or via separate pages in /app.
-  // For demo, this page shows the search UI by default.
 
   return (
     <main>
       <NavBar />
-      {/* CHANGED: Render SearchAlbum directly here; other routes (new, edit, show)
-          will be separate pages: /new/page.tsx, /edit/[albumId]/page.tsx, etc. */}
-      {/* <SearchAlbum
+      <SearchAlbum
         updateSearchResults={updateSearchResults}
         albumList={renderedList}
-        updateSingleAlbum={(albumid: number) => updateSingleAlbum(albumid, "/show/")}
-      /> */}
-      <h1>Sparks Album List (Debug View)</h1>
-      <p>This JSON data is rendered directly from the API response.</p>
-
-      {/* CHANGED: render JSON data inline */}
-      {/* Debug JSON display */}
-      {/* Render the first album visually */}
-      {albumList.length > 0 && <AlbumCard album={albumList[0]} />}
-      {albumList.length > 0 && <AlbumList albumList={albumList} />}
-      <pre
-        style={{
-          backgroundColor: "#f4f4f4",
-          padding: "1rem",
-          borderRadius: "8px",
-          overflow: "auto",
-          color: "#111",
-          fontSize: "0.9rem",
-          lineHeight: "1.4",
-        }}
-      >
-        {albumList.length > 0 && JSON.stringify(albumList, null, 2)}
-        {!loadError && albumList.length === 0 && <p>Loading albums...</p>}
-        {loadError && <p style={{ color: "red" }}>{loadError}</p>}
-      </pre>
-
-
-
+        updateSingleAlbum={updateSingleAlbum}
+      />
+      {loadError && <p style={{ color: "red" }}>{loadError}</p>}
     </main>
   );
 }

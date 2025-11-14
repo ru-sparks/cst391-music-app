@@ -1,22 +1,26 @@
-import React from 'react';
-import AlbumCard from './AlbumCard';
-import { useRouter } from "next/navigation";
-import { Album } from '@/lib/types';
+"use client";
 
+import React from "react";
+import AlbumCard from "./AlbumCard";
+import { Album } from "@/lib/types";
 
-const AlbumList = ({ albumList }: { albumList: Album[] }) => {
-
-    console.log('props albumList', albumList);
-    const router = useRouter();
-    const albums = albumList.map((album) => {
-        return (
-            <AlbumCard key={album.id}
-                album={album} />
-
-        );
-    });
-    return <div className='container'>{albums}</div>;
+interface AlbumListProps {
+    albumList: Album[];
+    onClick: (album: Album, uri: string) => void;
 }
 
+export default function AlbumList({ albumList, onClick }: AlbumListProps) {
+    console.log("AlbumList received albums:", albumList);
 
-export default AlbumList;
+    return (
+        <div className="container">
+            {albumList.map((album) => (
+                <AlbumCard
+                    key={album.id}
+                    album={album}
+                    onClick={onClick}
+                />
+            ))}
+        </div>
+    );
+}

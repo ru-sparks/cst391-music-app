@@ -1,3 +1,4 @@
+// app\api\albums\route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getPool } from '@/lib/db';
 import { Album, Track } from '@/lib/types';
@@ -7,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const pool = getPool();
     const url = new URL(request.url);
-    const albumIdParam = url.searchParams.get('id');
+    const albumIdParam = url.searchParams.get('albumId');
     let albumsData: Album[];
 
     if (albumIdParam) {

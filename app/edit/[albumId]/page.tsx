@@ -1,4 +1,3 @@
-// app/edit/[albumId]/page.tsx
 "use client";
 
 import { get, post, put } from "@/lib/apiClient";
@@ -8,9 +7,9 @@ import { useState, useEffect } from "react";
 
 export default function EditAlbumPage() {
     const router = useRouter();
-    // Next.js params hook replaces useParams from react-router
     const params = useParams();
-    const albumId = params?.albumId; // undefined under /new
+    const albumId = params?.albumId; // undefined in /new
+
     const defaultAlbum: Album = {
         id: 0,
         title: "",
@@ -21,53 +20,159 @@ export default function EditAlbumPage() {
         tracks: [] as Track[],
     };
 
-    // Type safe use of defaultAlbum to initialize state
-    // Rather than the ad hoc album object used previously, this ensures correct typing and calms TypeScript
     const [album, setAlbum] = useState(defaultAlbum);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Load album only when editing
+    // Load album when editing
     useEffect(() => {
-        if (!albumId) return; // creation mode
+        if (!albumId) return;
         (async () => {
-            const res = await get<Album>(`/albums/${albumId}`);
-            setAlbum(res);
+            try {
+                const res = await get<Album[]>(`/albums/?albumId=${albumId}`);
+                setAlbum(res[0]);
+            } catch (error) {
+                console.error("Failed to load album:", error);
+            }
         })();
     }, [albumId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true);
 
-        if (albumId) {
-            try {
-                await put<Album>(`/albums/${albumId}`, album);
-            } catch (error) {
-                console.error("Failed to update album:", error);
-            }
-        } else {
-            try {
+        try {
+            if (albumId) {
+                alert("Updating existing album");
+                await put<Album>(`/albums/`, album);
+            } else {
+                alert("Creating new album");
                 await post<Album>("/albums", album);
-            } catch (error) {
-                console.error("Failed to create album:", error);
             }
-
+            router.push("/");
+        } catch (error) {
+            console.error("Failed to save album:", error);
+        } finally {
+            setIsSubmitting(false);
         }
-        router.push("/");
     };
 
-    const onChange = (key: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-        setAlbum((prev) => ({ ...prev, [key]: e.target.value }));
+    const onChange =
+        (key: string) =>
+            (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                setAlbum((prev) => ({ ...prev, [key]: e.target.value }));
 
     return (
-        <main style={{ padding: "1rem" }}>
-            <h1>{albumId ? "Edit Album" : "Create Album"}</h1>
-            <form onSubmit={handleSubmit}>
-                <input placeholder="Title" value={album.title} onChange={onChange("title")} />
-                <input placeholder="Artist" value={album.artist} onChange={onChange("artist")} />
-                <input placeholder="Year" value={album.year} onChange={onChange("year")} />
-                <textarea placeholder="Description" value={album.description ?? ""} onChange={onChange("description")} />
-                <input placeholder="Image URL" value={album.image ?? ""} onChange={onChange("image")} />
-                <button type="submit">{albumId ? "Update" : "Save"}</button>
-            </form>
-        </main>
+        <div className="container-fluid mt-5 px-4">
+            <div className="row justify-content-center">
+                <div className="col-12 col-md-10 col-lg-8 col-xl-8">
+                    <div className="card shadow-sm border-0">
+                        <div className="card-body p-4">
+                            <h2 className="card-title text-center mb-4">
+                                {albumId ? "Edit Album" : "Create Album"}
+                            </h2>
+
+                            <form onSubmit={handleSubmit}>
+                                {/* Title */}
+                                <div className="mb-3">
+                                    <label htmlFor="title" className="form-label fw-semibold">
+                                        Title
+                                    </label>
+                                    <input
+                                        id="title"
+                                        className="form-control"
+                                        placeholder="Enter album title"
+                                        value={album.title}
+                                        onChange={onChange("title")}
+                                        required
+                                    />
+                                </div>
+
+                                {/* Artist */}
+                                <div className="mb-3">
+                                    <label htmlFor="artist" className="form-label fw-semibold">
+                                        Artist
+                                    </label>
+                                    <input
+                                        id="artist"
+                                        className="form-control"
+                                        placeholder="Enter artist name"
+                                        value={album.artist}
+                                        onChange={onChange("artist")}
+                                        required
+                                    />
+                                </div>
+
+                                {/* Year */}
+                                <div className="mb-3">
+                                    <label htmlFor="year" className="form-label fw-semibold">
+                                        Year
+                                    </label>
+                                    <input
+                                        id="year"
+                                        type="number"
+                                        className="form-control"
+                                        placeholder="Enter release year"
+                                        value={album.year}
+                                        onChange={onChange("year")}
+                                    />
+                                </div>
+
+                                {/* Description */}
+                                <div className="mb-3">
+                                    <label htmlFor="description" className="form-label fw-semibold">
+                                        Description
+                                    </label>
+                                    <textarea
+                                        id="description"
+                                        className="form-control"
+                                        rows={3}
+                                        placeholder="Enter album description"
+                                        value={album.description ?? ""}
+                                        onChange={onChange("description")}
+                                    />
+                                </div>
+
+                                {/* Image URL */}
+                                <div className="mb-4">
+                                    <label htmlFor="image" className="form-label fw-semibold">
+                                        Image URL
+                                    </label>
+                                    <input
+                                        id="image"
+                                        className="form-control"
+                                        placeholder="Enter cover image URL"
+                                        value={album.image ?? ""}
+                                        onChange={onChange("image")}
+                                    />
+                                </div>
+
+                                {/* Buttons */}
+                                <div className="d-flex justify-content-between align-items-center mt-4">
+                                    <button
+                                        type="button"
+                                        className="btn btn-outline-secondary"
+                                        onClick={() => router.push("/")}
+                                        disabled={isSubmitting}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary px-4"
+                                        disabled={isSubmitting}
+                                    >
+                                        {isSubmitting
+                                            ? "Saving..."
+                                            : albumId
+                                                ? "Update Album"
+                                                : "Create Album"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }
