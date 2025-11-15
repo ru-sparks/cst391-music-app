@@ -22,6 +22,7 @@ export default function EditAlbumPage() {
 
     const [album, setAlbum] = useState(defaultAlbum);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState(false);
 
     // Load album when editing
     useEffect(() => {
@@ -45,11 +46,11 @@ export default function EditAlbumPage() {
                 alert("Updating existing album");
                 await put<Album>(`/albums/`, album);
             } else {
-                alert("Creating new album");
                 await post<Album>("/albums", album);
             }
             router.push("/");
         } catch (error) {
+            setSubmitError(true);
             console.error("Failed to save album:", error);
         } finally {
             setIsSubmitting(false);
@@ -70,7 +71,11 @@ export default function EditAlbumPage() {
                             <h2 className="card-title text-center mb-4">
                                 {albumId ? "Edit Album" : "Create Album"}
                             </h2>
-
+                            {submitError && (
+                                <div className="alert alert-danger" role="alert">
+                                    Failed to save album. Please try again.
+                                </div>
+                            )}
                             <form onSubmit={handleSubmit}>
                                 {/* Title */}
                                 <div className="mb-3">

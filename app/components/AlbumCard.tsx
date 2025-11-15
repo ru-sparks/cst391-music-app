@@ -4,6 +4,7 @@
 // This interface acts as a contract, ensuring that any use of AlbumCard
 
 import { Album } from "@/lib/types";
+import { useSession } from "next-auth/react";
 
 // must provide exactly these props with the correct types.
 interface AlbumCardProps {
@@ -31,6 +32,9 @@ export default function AlbumCard({ album, onClick }: AlbumCardProps) {
         onClick(album, uri);
     };
 
+    const { data: session } = useSession();
+    const isAdmin = session?.user?.role === "admin";
+
     return (
         <div className="card" style={{ width: "18rem" }}>
             <img
@@ -55,12 +59,14 @@ export default function AlbumCard({ album, onClick }: AlbumCardProps) {
                     >
                         View
                     </button>
-                    <button
-                        onClick={() => handleButtonClick("/edit/")}
-                        className="btn btn-primary"
-                    >
-                        Edit
-                    </button>
+                    {isAdmin && (
+                        <button
+                            onClick={() => handleButtonClick("/edit/")}
+                            className="btn btn-primary"
+                        >
+                            Edit
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

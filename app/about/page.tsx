@@ -32,9 +32,9 @@ const AboutBox = ({ companyName = "ACME", bossName = "Road Runner" }: AboutBoxPr
                     </p>
                     <div className="d-flex justify-content-center gap-3 mt-4">
 
-                        <Link href="/" className="btn btn-primary">
+                        {/* <Link href="/" className="btn btn-primary">
                             Home
-                        </Link>
+                        </Link> */}
                     </div>
 
                 </div>

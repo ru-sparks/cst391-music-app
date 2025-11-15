@@ -2,12 +2,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPool } from '@/lib/db';
 import { Album, Track } from '@/lib/types';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
     const pool = getPool();
-    const url = new URL(request.url);
+    const url = new URL(request.url || 'http://localhost');
     const albumIdParam = url.searchParams.get('albumId');
     let albumsData: Album[];
 
@@ -64,6 +66,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+
     const body = await request.json();
     const { title, artist, year, description, image, tracks } = body;
     if (!title || !artist || year == null) {

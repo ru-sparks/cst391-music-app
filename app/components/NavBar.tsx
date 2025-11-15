@@ -36,6 +36,14 @@ export default function NavBar() {
           <Link href="/about" className="nav-item nav-link">
             About Us
           </Link>
+          {/* --- NextAuth Links (Add These) --- */}
+          <Link href="/api/auth/signin" className="nav-item nav-link">
+            Sign In
+          </Link>
+          <Link href="/api/auth/signout" className="nav-item nav-link">
+            Sign Out
+          </Link>
+
         </div>
       </div>
     </nav>
