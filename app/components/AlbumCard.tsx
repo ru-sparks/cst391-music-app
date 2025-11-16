@@ -43,7 +43,7 @@ export default function AlbumCard({ album, onClick }: AlbumCardProps) {
                 alt={album.title}
                 style={{
                     height: "18rem",          // constrain the image height
-
+                    flexShrink: 0,           // prevent shrinking
                     objectFit: "cover",       // crop edges if necessary (maintains aspect ratio)
                     width: "18rem"            // ensures it spans the full card width
                 }}
